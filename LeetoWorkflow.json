@@ -69,7 +69,7 @@
     },
     {
       "parameters": {
-        "fromEmail": "samogics@gmail.com",
+        "fromEmail": "leetotracker@gmail.com",
         "toEmail": "={{ $items(\"UserEmail\")[0].json.email }}\n",
         "subject": "=Recent Leet'O Performance - {{new Date().toLocaleDateString()}}",
         "html": "=<div style=\"display:none; max-height:0; overflow:hidden;\">\n Recent Leet'O Report\n</div>\n\n<div style=\"background:#f4f6f8; padding:30px 0; font-family:Arial, sans-serif;\">\n\n  <div style=\"max-width:650px; margin:0 auto; background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; padding:30px;\">\n\n    <!-- Main Header -->\n    <h3 style=\"text-align:center; margin:0 0 5px 0; font-size:26px; color:#111827;\">\n      LEET 'O' TRACK\n    </h3>\n\n    <p style=\"text-align:center; margin:10px 0 25px 0; font-size:14px; color:#6b7280;\">\n      Recent Performance Report\n    </p>\n\n    <!-- Greeting -->\n    <p style=\"font-size:13px; text-align: center; color:#374151; margin-bottom: 0px;\">\n      Hi {{ $items(\"UserEmail\")[0].json.username }} 👋\n    </p>\n<p style=\"font-size:12px; text-align: center; color:#374151; margin-bottom:20px;\">\n     Here's your recent coding performance summary.\n    </p>\n<!-- SUMMARY CARD (Main Card) -->\n<div style=\"background:#f9fafb; border:1px solid #e5e7eb; border-radius:10px; padding:22px; margin-bottom:25px;\">\n\n  <h3 style=\"margin:0 0 18px 0; font-size:20px; color:#111827;\">\n    📌 Summary\n  </h3>\n\n  <!-- Problems Solved -->\n  <p style=\"margin:0 0 12px 0; font-size:16px;\">\n    <strong>Problems Solved:</strong>\n    {{ $items(\"RAW REPORT\")[0].json.totalSolved ?? 0 }}\n  </p>\n\n  <!-- Difficulty -->\n  <p style=\"margin:0 0 18px 0; font-size:15px;\">\n    <span style=\"color:#10b981; font-weight:600;\">\n      Easy: {{ $items(\"RAW REPORT\")[0].json.difficultyCount?.Easy ?? 0 }}\n    </span>\n    &nbsp;|&nbsp;\n    <span style=\"color:#f59e0b; font-weight:600;\">\n      Medium: {{ $items(\"RAW REPORT\")[0].json.difficultyCount?.Medium ?? 0 }}\n    </span>\n    &nbsp;|&nbsp;\n    <span style=\"color:#ef4444; font-weight:600;\">\n      Hard: {{ $items(\"RAW REPORT\")[0].json.difficultyCount?.Hard ?? 0 }}\n    </span>\n  </p>\n\n  <!-- Divider -->\n  <div style=\"height:1px; background:#e5e7eb; margin:18px 0;\"></div>\n\n  <!-- Acceptance Section (INSIDE Summary) -->\n  <h4 style=\"margin:0 0 12px 0; font-size:16px; color:#111827;\">\n    📊 Acceptance Rate\n  </h4>\n\n  <p style=\"margin:0 0 10px 0; font-size:15px;\">\n    <strong>\n      {{ $items(\"RAW REPORT\")[0].json.acceptanceRate ?? 0 }}%\n    </strong>\n    &nbsp;|&nbsp;\n    {{ $items(\"RAW REPORT\")[0].json.performanceLevel ?? '' }}\n  </p>\n\n  <!-- Progress Bar -->\n  <div style=\"width:100%; background:#e5e7eb; border-radius:8px; height:14px; overflow:hidden;\">\n    <div style=\"\n      width: {{ $items('RAW REPORT')[0].json.acceptanceRate ?? 0 }}%;\n      background:#10b981;\n      height:14px;\">\n    </div>\n  </div>\n\n  <p style=\"margin-top:8px; font-size:13px; color:#6b7280;\">\n    Accepted:\n    {{ $items(\"RAW REPORT\")[0].json.totalAccepted ?? 0 }}\n    &nbsp;|&nbsp;\n    Attempts:\n    {{ $items(\"RAW REPORT\")[0].json.totalAttempts ?? 0 }}\n  </p>\n\n</div>\n\n\n\n\n    <!-- Topic Breakdown Card -->\n    <div style=\"background:#f9fafb; border:1px solid #e5e7eb; border-radius:10px; padding:20px; margin-bottom:25px;\">\n\n      <h3 style=\"margin:0 0 15px 0; font-size:18px; color:#111827;\">\n        📚 Topics Covered\n      </h3>\n\n      <ul style=\"padding-left:18px; margin:0; font-size:15px; color:#374151;\">\n\n        {{\n        Object.entries($items(\"RAW REPORT\")[0].json.topicCount ?? {})\n        .map(([t,c]) => `<li style=\"margin-bottom:6px;\"><strong>${t}</strong>: ${c}</li>`)\n        .join('')\n        }}\n\n      </ul>\n\n    </div>\n\n<!-- AI Section -->\n<div style=\"border:1px solid #ede9fe; background:#faf5ff; border-radius:12px; padding:24px;\">\n\n  <h2 style=\"margin:0 0 20px 0; font-size:20px; color:#6d28d9;\">\n    🧠 AI Review & Revision Plan\n  </h2>\n\n  <div style=\"font-size:14px; color:#374151; line-height:1.7;\">\n    {{\n      $items(\"AI CLEAN\")[0].json.cleanedAI\n    }}\n  </div>\n\n</div>\n<!-- Problem Breakdown Card -->\n<div style=\"background:#f9fafb; border:1px solid #e5e7eb; border-radius:12px; padding:24px; margin-top:25px;\">\n\n  <h3 style=\"margin:0 0 20px 0; font-size:18px; color:#111827;\">\n    📝 Problem Breakdown\n  </h3>\n\n  {{\n    $items(\"FormatList\")\n    .map(item => {\n      const p = item.json;\n\n      const statusColor = p.cleanSolve ? \"#10b981\" : \"#f59e0b\";\n      const statusText  = p.cleanSolve ? \"Clean Solve\" : \"Struggled\";\n\n      return `\n        <div style=\"margin-bottom:22px; padding-bottom:18px; border-bottom:1px solid #e5e7eb;\">\n\n          <!-- Problem Name -->\n          <div style=\"font-size:15px; font-weight:600; color:#111827; margin-bottom:8px;\">\n            ${p.title}\n          </div>\n\n          <!-- Stats Row -->\n          <div style=\"font-size:13px; color:#374151; line-height:1.8;\">\n            Attempts: <strong>${p.attempts ?? 0}</strong><br>\n            Accepted: <strong>${p.accepted ?? 0}</strong><br>\n            Status: <span style=\"color:${statusColor}; font-weight:600;\">\n              ${statusText}\n            </span>\n          </div>\n\n        </div>\n      `;\n    })\n    .join('')\n  }}\n\n</div>\n\n\n\n\n\n\n    <!-- Footer -->\n    <p style=\"margin-top:30px; font-size:13px; color:#9ca3af; text-align:center;\">\n       {{ $json.footerMessage }}\n    </p>\n\n  </div>\n</div>\n",
@@ -88,7 +88,7 @@
       "webhookId": "de0fd6e8-93a0-4530-b4d1-ded862becfe4",
       "credentials": {
         "smtp": {
-          "id": "RhR1vKHMK86Wx1OQ",
+          "id": "",
           "name": "SMTP account 2"
         }
       }
@@ -123,7 +123,7 @@
       "name": "Groq Chat Model",
       "credentials": {
         "groqApi": {
-          "id": "5rhpD5wfpJVtNprl",
+          "id": "",
           "name": "Groq account 2"
         }
       }
@@ -276,7 +276,7 @@
       "name": "PickUsers",
       "credentials": {
         "postgres": {
-          "id": "G7QcfniEc0i8xdUt",
+          "id": "",
           "name": "Postgres account 2"
         }
       }
