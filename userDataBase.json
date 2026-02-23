@@ -1,0 +1,210 @@
+{
+  "name": "leetdb",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "TRUNCATE TABLE user_reports, users RESTART IDENTITY CASCADE;\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1648,
+        -128
+      ],
+      "id": "69319348-8518-4d31-93ae-c09d2caf3972",
+      "name": "OperationsOnTable",
+      "credentials": {
+        "postgres": {
+          "id": "G7QcfniEc0i8xdUt",
+          "name": "Postgres account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "list",
+          "cachedResultName": "users"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1648,
+        144
+      ],
+      "id": "d4d37761-9067-4149-9dd6-7054378ab492",
+      "name": "ViewTable",
+      "credentials": {
+        "postgres": {
+          "id": "G7QcfniEc0i8xdUt",
+          "name": "Postgres account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "register-user",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1872,
+        -368
+      ],
+      "id": "61b740ed-104c-43f1-91ba-c5c7ad4e0067",
+      "name": "leetoTracker.online",
+      "webhookId": "244b4405-04d1-4087-80f9-cf3631988df2"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "list",
+          "cachedResultName": "users"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "username": "={{$json.body.username}}",
+            "email": "={{$json.body.email}}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "username",
+              "displayName": "username",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1616,
+        -368
+      ],
+      "id": "d4370215-691c-4218-ad1c-3afb34f98fd4",
+      "name": "RegisterUser",
+      "credentials": {
+        "postgres": {
+          "id": "G7QcfniEc0i8xdUt",
+          "name": "Postgres account 2"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1952,
+        -32
+      ],
+      "id": "6fefa8f6-7c2b-4515-ad15-fcab6273a462",
+      "name": "When clicking ‘Execute workflow’"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "leetoTracker.online": {
+      "main": [
+        [
+          {
+            "node": "RegisterUser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "ViewTable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RegisterUser": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "2e9972ec-e5b2-4337-93e7-184af855ce45",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "df88f10f85cf3752bf9fcca1a77ec4ad136df7d4fd5f810c950896bb7d45ab65"
+  },
+  "id": "eQoA46e8jZOMAn6Z",
+  "tags": []
+}

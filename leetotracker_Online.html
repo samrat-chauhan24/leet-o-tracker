@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Leet'O Track - Register</title>
+  <meta charset="UTF-8" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111827;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .card {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: #1f2937;
+      padding: 30px;
+      border-radius: 12px;
+      width: 320px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    input {
+      width: 300px;
+      padding: 10px;
+      margin-bottom: 12px;
+      border-radius: 6px;
+      border: none;
+    }
+  
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #10b981;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+   
+    button:hover {
+      background: #059669;
+    }
+
+    .success {
+      margin-top: 15px;
+      text-align: center;
+      color: #10b981;
+    }
+
+    .error {
+      margin-top: 15px;
+      text-align: center;
+      color: #ef4444;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>LEET 'O' TRACKER</h2>
+
+    <input type="text" id="username" placeholder="Username" required class="username"/>
+    <input type="email" id="email" placeholder="Email" required class="email" />
+
+    <button onclick="registerUser()">Register</button>
+
+    <div id="message"></div>
+  </div>
+
+<script>
+async function registerUser() {
+  const username = document.getElementById("username").value;
+  const email = document.getElementById("email").value;
+  const message = document.getElementById("message");
+
+  if (!username || !email) {
+    message.innerHTML = "<div class='error'>Please fill all fields</div>";
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      "http://localhost:5678/webhook-test/register-user",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "69420" // Bypasses ngrok's free tier warning
+        },
+        body: JSON.stringify({
+          username,
+          email
+        })
+      }
+    );
+
+    if (response.ok) {
+      message.innerHTML = "<div class='success'>User Registered!</div>";
+    } else {
+      // It connected, but n8n returned an error (like a 404 or 500)
+      message.innerHTML = "<div class='error'>Something went wrong. Is the workflow Active?</div>";
+    }
+
+  } catch (err) {
+    // It failed to connect entirely (CORS, dead URL, or network down)
+    console.error("Fetch error:", err);
+    message.innerHTML = "<div class='error'>Server not reachable</div>";
+  }
+}
+</script>
+
+</body>
+</html>

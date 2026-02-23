@@ -1,0 +1,456 @@
+{
+  "name": "LeetCode Tracker Multi  v2",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://leetcode.com/graphql",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query\": \"query recentSubmissions($username: String!) { recentSubmissionList(username: $username) { title titleSlug timestamp statusDisplay } }\",\n  \"variables\": {\n    \"username\": \"{{$json.username}}\"\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1120,
+        -240
+      ],
+      "id": "32575fcd-26a1-455f-83e4-53b71488f88c",
+      "name": "ProblemList"
+    },
+    {
+      "parameters": {
+        "jsCode": "const submissions = $json.data.recentSubmissionList || [];\n\nconst problemMap = {};\n\n// Build problem map\nsubmissions.forEach(s => {\n  if (!problemMap[s.titleSlug]) {\n    problemMap[s.titleSlug] = {\n      title: s.title,\n      titleSlug: s.titleSlug,\n      attempts: 0,\n      wrong: 0,\n      tle: 0,\n      accepted: 0,\n      firstAttempt: parseInt(s.timestamp),\n      lastAttempt: parseInt(s.timestamp)\n    };\n  }\n\n  const p = problemMap[s.titleSlug];\n\n  p.attempts++;\n\n  if (s.statusDisplay === \"Accepted\") p.accepted++;\n  if (s.statusDisplay === \"Wrong Answer\") p.wrong++;\n  if (s.statusDisplay === \"Time Limit Exceeded\") p.tle++;\n\n  const ts = parseInt(s.timestamp);\n  if (ts < p.firstAttempt) p.firstAttempt = ts;\n  if (ts > p.lastAttempt) p.lastAttempt = ts;\n});\n\n// Convert to array\nconst results = Object.values(problemMap).map(p => {\n\n  const hadStruggle =\n    p.wrong > 0 ||\n    p.tle > 0 ||\n    (p.attempts > 1 && p.accepted === 1);\n\n  const base = {\n    title: p.title,\n    titleSlug: p.titleSlug,\n    attempts: p.attempts,\n    accepted: p.accepted\n  };\n\n  // ✅ Clean solve (even if re-submitted accepted multiple times)\n  if (!hadStruggle) {\n    return {\n      json: {\n        ...base,\n        cleanSolve: true\n      }\n    };\n  }\n\n  // Calculate solve time only if struggle happened\n  const timeToSolveMinutes =\n    Math.floor((p.lastAttempt - p.firstAttempt) / 60);\n\n  return {\n    json: {\n      ...base,\n      wrong: p.wrong || undefined,\n      tle: p.tle || undefined,\n      struggleScore: p.attempts - p.accepted,\n      timeToSolveMinutes:\n        timeToSolveMinutes > 0 ? timeToSolveMinutes : undefined\n    }\n  };\n});\n\nreturn results;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -944,
+        -240
+      ],
+      "id": "7f526dc6-677d-426d-832d-108e233bc4bb",
+      "name": "FormatList"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ✅ Pull original problems (with attempts & accepted)\nconst baseProblems = $items(\"FormatList\").map(i => i.json);\n\n// ✅ Pull enriched problems (with difficulty & topics)\nconst enrichedProblems = $items(\"FORMATING\").map(i => i.json);\n\nlet totalAttempts = 0;\nlet totalAccepted = 0;\n\nconst difficultyCount = {};\nconst topicCount = {};\n\n// ---- TOTALS (from FormatList) ----\nbaseProblems.forEach(p => {\n  totalAttempts += p.attempts || 0;\n  totalAccepted += p.accepted || 0;\n});\n\n// ---- Difficulty & Topics (from enriched data) ----\nenrichedProblems.forEach(p => {\n\n  if (p.difficulty) {\n    difficultyCount[p.difficulty] =\n      (difficultyCount[p.difficulty] || 0) + 1;\n  }\n\n  if (p.topics && Array.isArray(p.topics)) {\n    p.topics.forEach(topic => {\n      topicCount[topic] =\n        (topicCount[topic] || 0) + 1;\n    });\n  }\n\n});\n\n// ---- Acceptance Rate ----\nconst acceptanceRate = totalAttempts > 0\n  ? ((totalAccepted / totalAttempts) * 100)\n  : 0;\n\nlet performanceLevel = \"Needs Improvement\";\n\nif (acceptanceRate >= 85) performanceLevel = \"Excellent\";\nelse if (acceptanceRate >= 70) performanceLevel = \"Good\";\nelse if (acceptanceRate >= 50) performanceLevel = \"Average\";\n\nconst user = $item(0).$node[\"PickUsers\"].json;\n\n\nreturn [\n  {\n    json: {\n      user_id: user.id,\n      username: user.username,\n      email: user.email,\n\n      totalSolved: baseProblems.length,\n      totalAttempts,\n      totalAccepted,\n      acceptanceRate: acceptanceRate.toFixed(1),\n      performanceLevel,\n      difficultyCount,\n      topicCount\n    }\n  }\n];\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -336,
+        -240
+      ],
+      "id": "056417d7-30a1-4f6a-9549-9137f84f32fd",
+      "name": "RAW REPORT"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get analytics\nconst analytics = $items(\"RAW REPORT\")?.[0]?.json ?? {};\nconst aiOutput = $json.cleanedAI ?? \"\"; // from AI CLEAN\n\n// Safe difficulty\nconst difficulty = analytics.difficultyCount ?? {};\nconst easy = difficulty.Easy ?? 0;\nconst medium = difficulty.Medium ?? 0;\nconst hard = difficulty.Hard ?? 0;\n\n// Safe topics\nconst topicCount = analytics.topicCount ?? {};\n\nconst topicBreakdown = Object.keys(topicCount).length > 0\n  ? Object.entries(topicCount)\n      .sort((a, b) => b[1] - a[1])\n      .map(([topic, count]) => `<li><strong>${topic}</strong>: ${count}</li>`)\n      .join(\"\")\n  : `<li>No topics attempted</li>`;\n\n// 🔥 Random motivational footer\nconst motivationalQuotes = [\n  \"🚀 Small weekly improvements compound into massive growth.\",\n  \"🔥 Consistency beats intensity. Show up every week.\",\n  \"💡 Mastery is built one problem at a time.\",\n  \"📈 Progress over perfection.\",\n  \"⚡ Hard problems build strong engineers.\",\n  \"🧠 Train your brain daily. Momentum matters.\",\n  \"🏆 Discipline today, dominance tomorrow.\",\n  \"🔁 Keep solving. Keep evolving.\",\n  \"🎯 Focus. Practice. Improve. Repeat.\",\n  \"💪 Your future self will thank you.\"\n];\n\nlet randomQuote;\n\n// Smart conditional footer\nif ((analytics.totalSolved ?? 0) === 0) {\n  randomQuote = \"🌱 Every expert was once a beginner. Start this week strong.\";\n} else if (hard > 0) {\n  randomQuote = \"🔥 Solving hard problems builds elite problem solvers.\";\n} else {\n  randomQuote =\n    motivationalQuotes[\n      Math.floor(Math.random() * motivationalQuotes.length)\n    ];\n}\n\n// 🔹 Final formatted content\nconst finalReport = `\n📊 Weekly LeetCode Report\n\nProblems Solved: ${analytics.totalSolved ?? 0}\n\nEasy: ${easy} | Medium: ${medium} | Hard: ${hard}\n\nTopic Breakdown:\n<ul>\n${topicBreakdown}\n</ul>\n\n🧠 AI Revision Plan\n\n${aiOutput}\n\n---\n\n${randomQuote}\n`;\n\nreturn [\n  {\n    json: {\n      report: finalReport,\n      footerMessage: randomQuote\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352,
+        -240
+      ],
+      "id": "b77e0967-9e76-4e43-934a-0b933aa0ae64",
+      "name": "FMT REPORT"
+    },
+    {
+      "parameters": {
+        "fromEmail": "samogics@gmail.com",
+        "toEmail": "={{ $items(\"UserEmail\")[0].json.email }}\n",
+        "subject": "=Recent Leet'O Performance - {{new Date().toLocaleDateString()}}",
+        "html": "=<div style=\"display:none; max-height:0; overflow:hidden;\">\n Recent Leet'O Report\n</div>\n\n<div style=\"background:#f4f6f8; padding:30px 0; font-family:Arial, sans-serif;\">\n\n  <div style=\"max-width:650px; margin:0 auto; background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; padding:30px;\">\n\n    <!-- Main Header -->\n    <h3 style=\"text-align:center; margin:0 0 5px 0; font-size:26px; color:#111827;\">\n      LEET 'O' TRACK\n    </h3>\n\n    <p style=\"text-align:center; margin:10px 0 25px 0; font-size:14px; color:#6b7280;\">\n      Recent Performance Report\n    </p>\n\n    <!-- Greeting -->\n    <p style=\"font-size:13px; text-align: center; color:#374151; margin-bottom: 0px;\">\n      Hi {{ $items(\"UserEmail\")[0].json.username }} 👋\n    </p>\n<p style=\"font-size:12px; text-align: center; color:#374151; margin-bottom:20px;\">\n     Here's your recent coding performance summary.\n    </p>\n<!-- SUMMARY CARD (Main Card) -->\n<div style=\"background:#f9fafb; border:1px solid #e5e7eb; border-radius:10px; padding:22px; margin-bottom:25px;\">\n\n  <h3 style=\"margin:0 0 18px 0; font-size:20px; color:#111827;\">\n    📌 Summary\n  </h3>\n\n  <!-- Problems Solved -->\n  <p style=\"margin:0 0 12px 0; font-size:16px;\">\n    <strong>Problems Solved:</strong>\n    {{ $items(\"RAW REPORT\")[0].json.totalSolved ?? 0 }}\n  </p>\n\n  <!-- Difficulty -->\n  <p style=\"margin:0 0 18px 0; font-size:15px;\">\n    <span style=\"color:#10b981; font-weight:600;\">\n      Easy: {{ $items(\"RAW REPORT\")[0].json.difficultyCount?.Easy ?? 0 }}\n    </span>\n    &nbsp;|&nbsp;\n    <span style=\"color:#f59e0b; font-weight:600;\">\n      Medium: {{ $items(\"RAW REPORT\")[0].json.difficultyCount?.Medium ?? 0 }}\n    </span>\n    &nbsp;|&nbsp;\n    <span style=\"color:#ef4444; font-weight:600;\">\n      Hard: {{ $items(\"RAW REPORT\")[0].json.difficultyCount?.Hard ?? 0 }}\n    </span>\n  </p>\n\n  <!-- Divider -->\n  <div style=\"height:1px; background:#e5e7eb; margin:18px 0;\"></div>\n\n  <!-- Acceptance Section (INSIDE Summary) -->\n  <h4 style=\"margin:0 0 12px 0; font-size:16px; color:#111827;\">\n    📊 Acceptance Rate\n  </h4>\n\n  <p style=\"margin:0 0 10px 0; font-size:15px;\">\n    <strong>\n      {{ $items(\"RAW REPORT\")[0].json.acceptanceRate ?? 0 }}%\n    </strong>\n    &nbsp;|&nbsp;\n    {{ $items(\"RAW REPORT\")[0].json.performanceLevel ?? '' }}\n  </p>\n\n  <!-- Progress Bar -->\n  <div style=\"width:100%; background:#e5e7eb; border-radius:8px; height:14px; overflow:hidden;\">\n    <div style=\"\n      width: {{ $items('RAW REPORT')[0].json.acceptanceRate ?? 0 }}%;\n      background:#10b981;\n      height:14px;\">\n    </div>\n  </div>\n\n  <p style=\"margin-top:8px; font-size:13px; color:#6b7280;\">\n    Accepted:\n    {{ $items(\"RAW REPORT\")[0].json.totalAccepted ?? 0 }}\n    &nbsp;|&nbsp;\n    Attempts:\n    {{ $items(\"RAW REPORT\")[0].json.totalAttempts ?? 0 }}\n  </p>\n\n</div>\n\n\n\n\n    <!-- Topic Breakdown Card -->\n    <div style=\"background:#f9fafb; border:1px solid #e5e7eb; border-radius:10px; padding:20px; margin-bottom:25px;\">\n\n      <h3 style=\"margin:0 0 15px 0; font-size:18px; color:#111827;\">\n        📚 Topics Covered\n      </h3>\n\n      <ul style=\"padding-left:18px; margin:0; font-size:15px; color:#374151;\">\n\n        {{\n        Object.entries($items(\"RAW REPORT\")[0].json.topicCount ?? {})\n        .map(([t,c]) => `<li style=\"margin-bottom:6px;\"><strong>${t}</strong>: ${c}</li>`)\n        .join('')\n        }}\n\n      </ul>\n\n    </div>\n\n<!-- AI Section -->\n<div style=\"border:1px solid #ede9fe; background:#faf5ff; border-radius:12px; padding:24px;\">\n\n  <h2 style=\"margin:0 0 20px 0; font-size:20px; color:#6d28d9;\">\n    🧠 AI Review & Revision Plan\n  </h2>\n\n  <div style=\"font-size:14px; color:#374151; line-height:1.7;\">\n    {{\n      $items(\"AI CLEAN\")[0].json.cleanedAI\n    }}\n  </div>\n\n</div>\n<!-- Problem Breakdown Card -->\n<div style=\"background:#f9fafb; border:1px solid #e5e7eb; border-radius:12px; padding:24px; margin-top:25px;\">\n\n  <h3 style=\"margin:0 0 20px 0; font-size:18px; color:#111827;\">\n    📝 Problem Breakdown\n  </h3>\n\n  {{\n    $items(\"FormatList\")\n    .map(item => {\n      const p = item.json;\n\n      const statusColor = p.cleanSolve ? \"#10b981\" : \"#f59e0b\";\n      const statusText  = p.cleanSolve ? \"Clean Solve\" : \"Struggled\";\n\n      return `\n        <div style=\"margin-bottom:22px; padding-bottom:18px; border-bottom:1px solid #e5e7eb;\">\n\n          <!-- Problem Name -->\n          <div style=\"font-size:15px; font-weight:600; color:#111827; margin-bottom:8px;\">\n            ${p.title}\n          </div>\n\n          <!-- Stats Row -->\n          <div style=\"font-size:13px; color:#374151; line-height:1.8;\">\n            Attempts: <strong>${p.attempts ?? 0}</strong><br>\n            Accepted: <strong>${p.accepted ?? 0}</strong><br>\n            Status: <span style=\"color:${statusColor}; font-weight:600;\">\n              ${statusText}\n            </span>\n          </div>\n\n        </div>\n      `;\n    })\n    .join('')\n  }}\n\n</div>\n\n\n\n\n\n\n    <!-- Footer -->\n    <p style=\"margin-top:30px; font-size:13px; color:#9ca3af; text-align:center;\">\n       {{ $json.footerMessage }}\n    </p>\n\n  </div>\n</div>\n",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        336,
+        64
+      ],
+      "id": "86d4eb3b-5b59-4d1c-ba42-92b364189bf2",
+      "name": "EMAIL",
+      "webhookId": "de0fd6e8-93a0-4530-b4d1-ded862becfe4",
+      "credentials": {
+        "smtp": {
+          "id": "RhR1vKHMK86Wx1OQ",
+          "name": "SMTP account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an elite DSA mentor.\n\nCreate a clean, concise weekly performance review.\n\nRules:\n- Keep it structured and highly readable.\n- Use clear spacing between sections.\n- Maximum 2 bullet points per section.\n- Keep the tone motivating but direct.\n- Do NOT exceed 250 words.\n- No unnecessary explanations.\n\nHere is my recent LeetCode performance:\n\nTotal Solved: {{$json.totalSolved}}\nAcceptance Rate: {{$json.acceptanceRate}}%\nPerformance Level: {{$json.performanceLevel}}\n\n\nDifficulty Breakdown:\nEasy: {{$json.difficultyCount.Easy ?? 0}}\nMedium: {{$json.difficultyCount.Medium ?? 0}}\nHard: {{$json.difficultyCount.Hard ?? 0}}\n\nTopic Breakdown:\n{{ Object.entries($json.topicCount ?? {})\n   .map(([t,c]) => `${t}: ${c}`)\n   .join(', ')\n}}\n\nFormat output EXACTLY like this:\n\n## Performance Summary\n• Bullet 1  \n• Bullet 2 \n\n## Strong Area\n• Bullet 1  \n• Bullet 2  \n\n## Improvement Area\n• Bullet 1  \n• Bullet 2  \n\n## To-Do Plan\n• Bullet 1  \n• Bullet 2  \n",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -144,
+        -240
+      ],
+      "id": "9930a773-abaf-4829-af12-b7e95b374a58",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        -48
+      ],
+      "id": "415ab332-8e4c-4075-9d37-c33350559a02",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "5rhpD5wfpJVtNprl",
+          "name": "Groq account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let text = $items(\"Basic LLM Chain\")[0].json.text || \"\";\n\n// Convert headings properly with tight spacing\ntext = text.replace(/##\\s*(.*)/g, `\n<h3 style=\"\n  margin:16px 0 8px 0;\n  font-size:16px;\n  color:#111827;\n  font-weight:600;\n\">\n$1\n</h3>\n`);\n\n// Convert bullet points\ntext = text.replace(/\\n•\\s*(.*)/g, '<li style=\"margin-bottom:6px;\">$1</li>');\n\n// Wrap bullet groups properly\ntext = text.replace(/(<li.*?<\\/li>)/gs, `\n<ul style=\"\n  margin:0 0 14px 18px;\n  padding:0;\n\">\n$1\n</ul>\n`);\n\n// Remove unnecessary line breaks\ntext = text.replace(/\\n{2,}/g, \"\");\n\nreturn [{ json: { cleanedAI: text } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        160,
+        -240
+      ],
+      "id": "f4f31043-f2c5-41be-945f-cc433b4c3137",
+      "name": "AI CLEAN"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "74446af3-4fc0-41aa-a14e-aa57d2233c67",
+              "name": "difficulty",
+              "value": "={{$json.data.question.difficulty}}",
+              "type": "string"
+            },
+            {
+              "id": "faa94a9b-2435-412c-b4b6-215cbc6d4626",
+              "name": "topics",
+              "value": "={{$json.data.question.topicTags.map(t => t.name)}}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -528,
+        -240
+      ],
+      "id": "f6c35f1d-a5f2-49b3-84e0-0c6c0a440cff",
+      "name": "FORMATING"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://leetcode.com/graphql",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query\": \"query getQuestion($titleSlug: String!) { question(titleSlug: $titleSlug) { difficulty topicTags { name } } }\",\n  \"variables\": {\n    \"titleSlug\": \"{{$json.titleSlug}}\"\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -752,
+        -240
+      ],
+      "id": "cab0995b-84c8-4cc4-aa07-6f9f0eaebb41",
+      "name": "TOPIC & DIFFICULTY"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1920,
+        0
+      ],
+      "id": "3387facc-8b8d-4a89-8841-c8333f1d2790",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -1488,
+        0
+      ],
+      "id": "9b8ad63f-4efe-4435-b138-d3c2420f3c57",
+      "name": "EachUser"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ee820d85-6361-41e7-8ec6-21a28f0333f7",
+              "name": "username",
+              "value": "={{$json.username}}",
+              "type": "string"
+            },
+            {
+              "id": "08c4054c-ec79-4649-b261-8f04bd63f3a4",
+              "name": "email",
+              "value": "={{$json.email}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1312,
+        -240
+      ],
+      "id": "6ab49a65-8227-4920-a34c-0bfc5d531bf8",
+      "name": "UserEmail"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "name"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1696,
+        0
+      ],
+      "id": "89e8ee64-43a2-4419-86d9-ae4ba608118d",
+      "name": "PickUsers",
+      "credentials": {
+        "postgres": {
+          "id": "G7QcfniEc0i8xdUt",
+          "name": "Postgres account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "ProblemList": {
+      "main": [
+        [
+          {
+            "node": "FormatList",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FormatList": {
+      "main": [
+        [
+          {
+            "node": "TOPIC & DIFFICULTY",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RAW REPORT": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FMT REPORT": {
+      "main": [
+        [
+          {
+            "node": "EMAIL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "AI CLEAN",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI CLEAN": {
+      "main": [
+        [
+          {
+            "node": "FMT REPORT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FORMATING": {
+      "main": [
+        [
+          {
+            "node": "RAW REPORT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TOPIC & DIFFICULTY": {
+      "main": [
+        [
+          {
+            "node": "FORMATING",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "PickUsers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "EMAIL": {
+      "main": [
+        [
+          {
+            "node": "EachUser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "EachUser": {
+      "main": [
+        [],
+        [
+          {
+            "node": "UserEmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UserEmail": {
+      "main": [
+        [
+          {
+            "node": "ProblemList",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PickUsers": {
+      "main": [
+        [
+          {
+            "node": "EachUser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "28b6985c-ba20-4ae4-abf4-bd765d2ec822",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "df88f10f85cf3752bf9fcca1a77ec4ad136df7d4fd5f810c950896bb7d45ab65"
+  },
+  "id": "Y4IrPjlPZpnOhnOt",
+  "tags": []
+}
