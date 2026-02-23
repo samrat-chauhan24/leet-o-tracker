@@ -77,18 +77,6 @@ Email Delivery
 
 ---
 
-## 📂 Project Structure
-leet-o-tracker/
-│
-├── leetotracker_Online.html # User registration page
-├── LeetoWorkflow.json # n8n workflow export
-├── userDataBase.json # DB reference
-├── FinalFlowChart.excalidraw # System diagram
-├── workflow-images/ # Workflow screenshots
-├── output-images/ # Sample outputs
-└── README.md
----
-
 ## 🚀 Running Locally
 
 1. Start PostgreSQL
