@@ -4,7 +4,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "TRUNCATE TABLE user_reports, users RESTART IDENTITY CASCADE;\n\n",
+        "query": "",
         "options": {}
       },
       "type": "n8n-nodes-base.postgres",
@@ -17,7 +17,7 @@
       "name": "OperationsOnTable",
       "credentials": {
         "postgres": {
-          "id": "G7QcfniEc0i8xdUt",
+          "id": "",
           "name": "Postgres account 2"
         }
       }
