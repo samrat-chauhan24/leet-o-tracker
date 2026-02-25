@@ -4,121 +4,373 @@
   <title>Leet'O Track - Register</title>
   <meta charset="UTF-8" />
   <style>
-    body {
+    * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    }
+    body{
       font-family: Arial, sans-serif;
-      background: #111827;
-      color: white;
+      background: white;
+      color: black;
+      height: 100vh;
+    
+    }
+    .maindiv{
+      padding-top: 100px;
+      background-color: #cfcbcb3f;
+      min-height: 90vh;
+    }
+    .title{
+      margin: 0px auto 0px auto;
+      font-family: 'ui-monospace';
+      background: linear-gradient(90deg, #2563eb, #7c3aed);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      height: 100px;
+      width: 50vw;
+      font-size: 80px;
+      font-weight: 900; 
+      text-align: center;
+      
+    }
+    .title-info{
+      text-align: center;
+      font-family: monospace;
+      line-height: 30px;
+      margin: 10px auto;
+      width: 55vw;
+      font-size: 20px;
+      color: rgba(0, 0, 0, 0.678);
+    }
+    .magic{
       display: flex;
       justify-content: center;
-      align-items: center;
-      height: 100vh;
+      margin-top: 30px;
+    }
+    .magic-button{
+      width: 170px;
+      height: 60px;
+      border: none;
+      background: linear-gradient(90deg, #2564ebec, #7c3aede9);
+      border-radius: 15px;
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.881); 
+      font-family: monospace;    
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    }
+    .magic-button:hover{
+      background: linear-gradient(90deg, #185beb, #6b21ea);
+      transform: scale(1.1);
+    }
+    .magic-message{
+      text-align: center;
+      font-family: 'ui-monospace';
+      line-height: 30px;
+      margin: 10px auto;
+      width: 55vw;
+      font-size: 20px;
+      background: linear-gradient(90deg, #2563eb, #7c3aed);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .outer{
+      margin-top: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;           
     }
 
     .card {
+      font-family: monospace;
+      margin-top: 20px auto 200px auto;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      background: #1f2937;
       padding: 30px;
       border-radius: 12px;
       width: 320px;
+      height: 400px;
+      border: 1px solid rgba(0, 0, 0, 0.678);
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeSlideIn 0.5s ease forwards;
+      transition: opacity 0.4s ease, transform 0.4s ease;
     }
+    @keyframes fadeSlideIn {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    }
+   
 
     h2 {
       text-align: center;
       margin-bottom: 20px;
+      background: linear-gradient(90deg, #2563eb, #7c3aed);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
     input {
-      width: 300px;
+      width: 100%;
       padding: 10px;
       margin-bottom: 12px;
       border-radius: 6px;
-      border: none;
+      border: 1px solid black;
+      background-color: transparent;
+      font-family: monospace;
     }
   
 
-    button {
+    #event {
+      color: rgba(255, 255, 255, 0.881);
       width: 100%;
       padding: 10px;
-      background: #10b981;
+      background: linear-gradient(90deg, #2564ebec, #7c3aede9);
       border: none;
       border-radius: 6px;
       font-weight: bold;
       cursor: pointer;
+      font-family: monospace;
     }
    
-    button:hover {
-      background: #059669;
+    #event:hover {
+      background: linear-gradient(90deg, #185beb, #6b21ea);
     }
-
+   
     .success {
       margin-top: 15px;
       text-align: center;
-      color: #10b981;
+      font-weight: 500;
+      background: linear-gradient(90deg, #10b981, #059669);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
     .error {
       margin-top: 15px;
       text-align: center;
-      color: #ef4444;
+      font-weight: 500;
+        background: linear-gradient(90deg, #ef4444, #dc2626);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .info-cards{
+      margin-top: 50px;
+      height: 230px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(0, 0, 0, 0.678);
+    }
+    .info-cards2{
+      height: 230px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(0, 0, 0, 0.678);
+      line-height: 20px;
+    }
+    .info{
+      width: 300px;
+      height: 142px;
+      padding: 20px;
+      background-color: rgba(255, 255, 255, 0.654);
+      margin: 0px 50px;
+      border-radius: 15px;
+      line-height: 20px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+      font-size: 14px;
+      font-family: monospace
+    }
+    .info:hover{
+      /* background-color: rgba(206, 204, 204, 0.335); */
+      transform: scale(1.06);
+      box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+    }
+
+    .maindiv2{
+      background-color: rgba(255, 255, 255, 0.654);
+      height: 15vh;
+    }
+    .title2{
+      margin: 100px auto 0px auto;
+      font-family: 'ui-monospace';
+      color: black;
+      width: 50vw;
+      font-size: 45px;
+      font-weight: 900; 
+      text-align: center;      
+    }
+    .title-info2{
+      text-align: center;
+      font-family: monospace;
+      line-height: 30px;
+      margin: 10px auto 0px auto;
+      width: 55vw;
+      font-size: 16px;
+      color: rgba(0, 0, 0, 0.678);
+    }
+    .info-card3{
+      margin-top: 20px;
+      height: 230px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(0, 0, 0, 0.678);
+      line-height: 20px;
+      padding-bottom: 80px;
+    }
+    .info-long{
+      background-color: #cfcbcb3f;
+      width: 450px;
+      height: 130px;
+      padding: 40px;
+      margin-left: 50px;
+      margin-right: 50px;
+      border-radius: 15px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+      font-family: monospace;
+      font-size: 14px;      
+    }
+    .info-long:hover{
+      transform: scale(1.06);
+      box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+    }
+    h3{
+      background: linear-gradient(90deg, #2563eb, #7c3aed);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-family: 'ui-monospace';
+      font-size: 22px;
+    }
+    .maindiv3{
+      height: 200px;
+      background: linear-gradient(90deg, #2563eb, #7c3aed);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .title3{
+      font-family: 'ui-monospace';
+      color: white;
+      width: 55vw;
+      font-size: 40px;
+      font-weight: 900; 
+      text-align: center;   
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;  
+    }
+    .title3:hover{
+      transform: scale(1.06);
+    }
+    footer{
+      font-family: monospace;
+      height: 40px;
+      font-size: 15px;
+      color: rgba(0, 0, 0, 0.678);
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
   </style>
 </head>
 <body>
+  <div class="maindiv">
+    <div class="title">LeetOTracker</div>
+    
+    <div class="title-info">Turn your LeetCode grind into structured growth. Get AI-powered reviews, smart revision plans, and detailed performance analytics.</div>
+    
+    <div class="magic"><button class="magic-button">Start Tracking</button></div>
+    
+    <div class="outer"></div>
+    <div class="info-cards">
+      <div class="info"><h3>Problem Breakdown</h3>See attempts, accepted solutions, and struggle status. Instantly know where you're stuck.</div>
+      <div class="info"><h3>Acceptance Analytics</h3>Visual acceptance rate tracking with progress bars and performance metrics.</div>
+      <div class="info"><h3>AI Review & Revision</h3>Personalized AI insights based on your coding strengths and weaknesses.
 
-  <div class="card">
-    <h2>LEET 'O' TRACKER</h2>
-
-    <input type="text" id="username" placeholder="Username" required class="username"/>
-    <input type="email" id="email" placeholder="Email" required class="email" />
-
-    <button onclick="registerUser()">Register</button>
-
-    <div id="message"></div>
+</div>
+    </div>
+    <div class="info-cards2">
+      <div class="info"><h3>Topic Insights</h3>Know exactly which topics you’re covering — Arrays, DP, Stack, HashMap and more.</div>
+      <div class="info"><h3>Weekly Reports</h3>Automated performance reports delivered to your inbox. Stay accountable.</div>
+      <div class="info"><h3>Serious Coders</h3>Stop random solving. Start structured growth. Level up your DSA journey.</div>
+    </div>
   </div>
-
+  <div class="maindiv2">
+    <div class="title2">See Your Growth Clearly</div>
+    <div class="title-info2">Beautiful dashboards| Clear analytics| AI guidance</div></div>
+    <div class="info-card3">
+      <div class="info-long"><h3>Performance Summary</h3>Easy, Medium, Hard breakdown with structured reports and acceptance tracking.</div>
+      <div class="info-long"><h3>AI Powered Plan</h3>Strong areas. Weak areas. Actionable next steps. No guesswork.</div>
+    </div>
+    <div class="maindiv3">
+      <div class="title3">Ready to Upgrade Your Coding Journey? Join Us</div>
+    </div>
+    <footer>
+      <div class="footer">© 2026 LeetOtracker • Built for ambitious developers 🚀</div>
+    </footer>
+  
 <script>
-async function registerUser() {
-  const username = document.getElementById("username").value;
-  const email = document.getElementById("email").value;
-  const message = document.getElementById("message");
+  const magicButton = document.querySelector(".magic-button");
+  magicButton.addEventListener('click',doMagic)
+  
+  function doMagic(){
+    const magicCard = document.querySelector(".outer");
+    
+    magicCard.innerHTML = "<div class='card'><h2>Get Set Go !</h2><input type='text' id='username' placeholder='Username' required class='username'/><input type='email' id='email' placeholder='Email' required class='email' /><button id='event'>Register</button><div id='message'></div></div>";
+    document.querySelector(".magic").innerHTML = ""
+  
+  const event = document.querySelector("#event")
+  .addEventListener('click', registerUser);
+  }
+// using fetch and then
+  function registerUser(){
+    const username = document.querySelector(".username").value;
+    const email = document.querySelector(".email").value;
+    const message = document.querySelector("#message");
 
-  if (!username || !email) {
-    message.innerHTML = "<div class='error'>Please fill all fields</div>";
-    return;
+    if(!username || !email){
+      message.innerHTML = "<div class='error'>Please fill all fields</div>"
+      return;
   }
 
-  try {
-    const response = await fetch(
-      "http://localhost:5678/webhook-test/register-user",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "ngrok-skip-browser-warning": "69420" // Bypasses ngrok's free tier warning
-        },
-        body: JSON.stringify({
-          username,
-          email
-        })
-      }
-    );
-
-    if (response.ok) {
-      message.innerHTML = "<div class='success'>User Registered!</div>";
-    } else {
-      // It connected, but n8n returned an error (like a 404 or 500)
-      message.innerHTML = "<div class='error'>Something went wrong. Is the workflow Active?</div>";
+  fetch("http://127.0.0.1:5678/webhook-test/register-user",{
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      username,
+      email
+    })
+  })
+  .then((response)=>{
+    if(!response.ok){
+      throw new Error("Something went wrong, is workflow active")
     }
+  })
+  .then((response)=>{
+    message.innerHTML = "<div class='success'>User Registered</div>";
+    const card = document.querySelector(".card");
 
-  } catch (err) {
-    // It failed to connect entirely (CORS, dead URL, or network down)
-    console.error("Fetch error:", err);
-    message.innerHTML = "<div class='error'>Server not reachable</div>";
-  }
-}
+  setTimeout(() => {
+    
+    document.querySelector(".outer").innerHTML = "";
+
+    document.querySelector(".magic").innerHTML ="<p class='magic-message'>Registration Successfull";
+
+    document.querySelector(".magic-button")
+      .addEventListener("click", doMagic);
+
+  }, 1500); 
+  })
+  .catch((error)=>{
+    message.innerHTML = "<div class='error'>Server not reachable</div>"
+  })
+
+};
 </script>
-
 </body>
 </html>
