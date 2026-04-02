@@ -1,109 +1,128 @@
-# 🚀 Leet'O Tracker
+# 🚀 Leet'O Tracker AI
 
-Leet'O Tracker is an automated LeetCode performance analytics system built using **n8n**, **PostgreSQL**, currently a basic **html page** and an **AI-powered reporting engine**.
+Leet'O Tracker AI is a full-stack platform that tracks LeetCode activity, analyzes user performance, and delivers automated AI-generated insights to help developers improve consistently.
 
-It collects user problem data, stores historical performance reports, compares progress over time, and generates structured recent activity review emails automatically.
-
----
-
-## 📌 What It Does
-
-- Registers users via a web interface  
-- Tracks problem-solving metrics  
-- Stores historical performance data  
-- Compares current vs previous reports  
-- Detects improvement, regression, or no change  
-- Generates AI-based recent performance reviews  
-- Sends automated email reports  
+🌐 **Live:** https://leetotracker.vercel.app/
 
 ---
 
-## 🏗 System Architecture
-Frontend (HTML Registration)
+## Overview
+
+Leet'O Tracker automates the entire feedback loop of coding practice:
+
+* Collects user problem-solving data
+* Stores historical performance
+* Analyzes trends using AI
+* Generates structured reports
+* Sends automated email updates
+* Provides an interactive AI mentor
+
+---
+
+## Key Features
+
+* Personal performance dashboard
+* Weekly automated email reports
+* AI-generated revision plans
+* Interview-style AI mentor
+* Workflow-based automation using n8n
+* Historical tracking and comparison
+
+---
+
+## Architecture
+
+Frontend (Next.js)
 ↓
-n8n Webhook Automation
+MongoDB (User Data)
 ↓
-PostgreSQL (users + user_reports)
+n8n Workflows (Automation)
 ↓
-Report Comparison Engine(not stable and live yet)
+PostgreSQL (Reports)
 ↓
-AI Performance Review (LLM)
+AI Processing (Groq LLM)
 ↓
-Email Delivery
+Email Reports + AI Mentor (FastAPI)
 
 ---
 
-## 🛠 Tech Stack
+## AI Mentor
 
-- **Automation:** n8n  
-- **Database:** PostgreSQL  
-- **AI Model:** Groq LLM (via n8n LLM Chain)  
-- **Frontend:** HTML/CSS/JS 
-- **Workflow Orchestration:** Node-based automation  
-
----
-
-## 🗄 Database Design
-
-### users
-- id (Primary Key)
-- username
-- email
-- created_at
-
-### user_reports
-- id (Primary Key)
-- user_id (Foreign Key)
-- report_date
-- raw_report (JSONB)
-- created_at
+* Routes queries based on user intent
+* Provides interview questions and evaluation
+* Generates structured revision plans
+* Uses user performance data for context
 
 ---
 
-## 🧠 Core Logic
+## Automation (n8n)
 
-- Calculates:
-  - Total Solved
-  - Attempts
-  - Acceptance Rate
-  - Difficulty & Topic breakdown
-- Compares against previous report
-- Detects:
-  - Improvement
-  - Regression
-  - No Change
-  - First Report
-- Stores every report for historical tracking
+* Fetch user data
+* Store reports in PostgreSQL
+* Compare with previous activity
+* Generate AI summaries
+* Send email reports
 
 ---
 
-## 🚀 Running Locally
+## Tech Stack
 
-1. Start PostgreSQL
-2. Import database schema
-3. Run n8n
-4. Import `LeetoWorkflow.json`
-5. Configure:
-   - PostgreSQL credentials
-   - SMTP email credentials
-   - Groq API key
-6. Execute workflow
+**Frontend**
+
+* Next.js
+* TypeScript
+* Tailwind CSS
+* NextAuth
+
+**Backend**
+
+* FastAPI
+* LangGraph
+* Groq (LLaMA 3)
+
+**Automation**
+
+* n8n
+
+**Database**
+
+* MongoDB
+* PostgreSQL
 
 ---
 
-## 🎯 Purpose
+## How It Works
 
-Built as a workflow-driven analytics system demonstrating:
-
-- Automation design
-- Database persistence
-- Multi-user processing
-- Report comparison logic
-- AI integration into backend systems
+1. User logs in and submits LeetCode username
+2. Dashboard displays current stats
+3. n8n workflow runs on schedule
+4. AI analyzes performance
+5. User receives automated report via email
+6. AI mentor provides on-demand guidance
 
 ---
 
-## 👨‍💻 Authors
+## Running Locally
 
-Samrat Chauhan - GitHub(samrat-chauhan24),
-Ronak Malik - GitHub(Ronak-Malik)
+1. Start MongoDB and PostgreSQL
+2. Run the frontend (Next.js)
+3. Start FastAPI server (AI mentor)
+4. Run n8n and import workflow
+5. Configure environment variables:
+
+   * MONGO_URI
+   * GROQ_API_KEY
+   * Email/SMTP credentials
+
+---
+
+## Authors
+
+* Samrat Chauhan
+* Ronak Malik
+
+---
+
+## Summary
+
+Leet'O Tracker AI combines tracking, analysis, and automation into a single system that helps developers improve their problem-solving performance without manual effort.
